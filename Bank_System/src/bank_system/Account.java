@@ -22,6 +22,7 @@ public class Account {
     private ArrayList<Beneficairy> friends = new ArrayList<>();
     private String password = "1234";
     private ArrayList<String> notification = new ArrayList<>();
+    private String fullname;
 
     public void setType(String type) {
         this.type = type;
@@ -37,16 +38,18 @@ public class Account {
         number = total + 1;
         total++;
         active = true;
-        this.owner.getName().first_name = "a";
-        this.owner.getName().middle_name = "b";
-        this.owner.getName().last_name = "c";
+        this.owner.getName().first_name = "aaa";
+        this.owner.getName().middle_name = "bbb";
+        this.owner.getName().last_name = "ccc";
+        this.fullname="aaa bbb ccc";
         this.amount = 2000;
     }
 
-    public void setAccount(String fname,String mname,String lname,int d,int m,int y,String sex,String email,String tel,String type,double amount) {
-        this.amount=amount;
-        this.type=type;
-        owner.setPerson(fname,mname,lname,d,m,y,sex,email,tel);
+    public void setAccount(String fname, String mname, String lname, int d, int m, int y, String sex, String email,
+            String tel, String type, double amount) {
+        this.amount = amount;
+        this.type = type;
+        fullname = owner.setPerson(fname, mname, lname, d, m, y, sex, email, tel);
     }
 
     public void setNumber(long number) {
@@ -154,8 +157,8 @@ public class Account {
 
     public AnswerQuestion askQuetion(String q) {
         AnswerQuestion a = new AnswerQuestion();
-        a.question = q;
-        a.accountno = this.number;
+        a.setQuestion(q);
+        a.setAccountno(this.number);
         return a;
     }
 
@@ -164,20 +167,20 @@ public class Account {
         if (accountno == this.number) {
             i = "You can't be your Own Benificiary.";
         }
-        if(i==null)
-        for (Beneficairy ben : friends) {
-            if (accountno == ben.getAccountno()) {
-                i = "Beneficiary Already Exists.";
+        if (i == null)
+            for (Beneficairy ben : friends) {
+                if (accountno == ben.getAccountno()) {
+                    i = "Beneficiary Already Exists.";
+                }
             }
-        }
-        if(i==null)
-        for (Account temp : accountList) {
-            if (accountno == temp.number) {
-                Beneficairy beneficairy = new Beneficairy(name, accountno);
-                friends.add(beneficairy);
-                i = "New Beneficairy added.";
+        if (i == null)
+            for (Account temp : accountList) {
+                if (accountno == temp.number) {
+                    Beneficairy beneficairy = new Beneficairy(name, accountno);
+                    friends.add(beneficairy);
+                    i = "New Beneficairy added.";
+                }
             }
-        }
         if (i == null) {
             i = "Account number not found.";
         }
@@ -197,29 +200,6 @@ public class Account {
         friends.remove(beneficairy);
     }
 
-
-    public Request loanRequest() {
-        System.out.print("\033[H\033[2J");
-        Scanner sc = new Scanner(System.in);
-        Request request = new Request();
-        System.out.print("Enter the Amount you wish to request: ");
-        request.amount = sc.nextDouble();
-        request.requester = this;
-        System.out.println("\tAsset Detail");
-        System.out.println("\t============");
-        System.out.print("Enter the Type of Asset you wish to put as laiability(Eg. Building,car...): ");
-        String type = sc.nextLine();
-        System.out.print("Enter the Location of the Asset if Static and enter movable if dynamic: ");
-        String location = sc.nextLine();
-        System.out.print("Enter an official estimated worth of the asset: ");
-        double amount = sc.nextDouble();
-        // Asset asset = new Asset(type, location, amount);
-        // request.r_asset = asset;
-        System.out.println("Your request has been sent, a reply will be sent shortly.\n Press Enter to return.");
-        sc.nextLine();
-        return request;
-    }
-
     public ArrayList<String> getNotification() {
         return notification;
     }
@@ -233,7 +213,7 @@ public class Account {
     }
 
     public void recieveAnswer(AnswerQuestion a) {
-        String b = "The Answer to you question to your question " + a.question + "is: \n" + a.answer;
+        String b = "The Answer to you question to your question \"" + a.getQuestion() + "\" is: \"" + a.getAnswer()+"\"";
         this.addNotification(b);
     }
 
@@ -241,4 +221,18 @@ public class Account {
         return friends;
     }
 
+    public String getFullname() {
+        return fullname;
+    }
+
+    public void setFullname(String fullname) {
+        this.fullname = fullname;
+    }
+    
+    public void changeCondtion(boolean x) {
+        if(x==true)
+        this.active=false;
+        if(x==false)
+        this.active=true;    
+    }
 }

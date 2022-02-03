@@ -1,6 +1,9 @@
 package bank_system;
 
 import java.util.Scanner;
+
+import javax.swing.Action;
+
 import java.util.ArrayList;
 import java.lang.*;
 import javafx.application.Application;
@@ -46,86 +49,6 @@ public class App extends Application {
     private static char usertype = 'd';
     MyException exception = new MyException();
 
-    public void admin() {
-        System.out.print("\033[H\033[2J");
-        System.out.println("Welcome Admin!");
-    }
-
-    public void mployee() {
-        Scanner sc = new Scanner(System.in);
-        System.out.print("\033[H\033[2J");
-        System.out.println("====================================================");
-        System.out.println("\t\tWelcome!");
-        System.out.println("====================================================");
-        System.out.println("\t\tInformation");
-        System.out.println("====================================================");
-        System.out.println("Name: " + banker.getName().first_name + " "
-                + banker.getName().middle_name + " " + banker.getName().last_name);
-        System.out.println("Employee Id: " + banker.getId());
-        System.out.println("====================================================");
-        System.out.println("\t\tOperations");
-        System.out.println("====================================================");
-        System.out.println("A) Create Account");
-        System.out.println("B) Deposit to an Account");
-        System.out.println("C) Withdraw from an Account");
-        System.out.println("E) Change Password");
-        System.out.println("L) Log Out");
-        System.out.println("====================================================");
-        System.out.print("Choice: ");
-        char ch = sc.next().charAt(0);
-        ch = Character.toLowerCase(ch);
-        switch (ch) {
-            case 'a':
-                Account newacc = banker.createAnAccount(accountlist);
-                accountlist.add(newacc);
-                employee();
-                break;
-            case 'b':
-                System.out.print("Enter the account number: ");
-                long a = sc.nextLong();
-                System.out.print("Enter the amount to deposit: ");
-                double depo = sc.nextDouble();
-                for (Account ac : accountlist) {
-                    if (ac.getNumber() == a) {
-                        banker.deposit(depo, ac);
-                        employee();
-                        ;
-                    }
-                }
-                System.out.println("Account not found, press Enter to return. ");
-                sc.nextLine();
-                employee();
-                ;
-                break;
-            case 'c':
-                System.out.print("Enter the account number: ");
-                long b = sc.nextLong();
-                System.out.print("Enter the amount to debit: ");
-                double deb = sc.nextDouble();
-                for (Account ac : accountlist) {
-                    if (ac.getNumber() == b) {
-                        banker.debit(deb, ac);
-                        employee();
-                        ;
-                    }
-                }
-                System.out.println("Account not found, press Enter to return. ");
-                sc.nextLine();
-                employee();
-                ;
-                break;
-            case 'e':
-                // banker.changePassword();
-                employee();
-                break;
-            case 'l':
-                logout();
-                break;
-
-        }
-
-    }
-
     TextField username = new TextField();
     PasswordField passowrd = new PasswordField();
     TextField ac_num = new TextField();
@@ -138,7 +61,6 @@ public class App extends Application {
     TextField fname = new TextField();
     TextField fnum = new TextField();
     TextField fdel = new TextField();
-
     Button logbt = new Button("Log in");
     static Stage mainStage = new Stage();
 
@@ -198,7 +120,6 @@ public class App extends Application {
             if (num == -1) {
                 if (pass.equals(admipass)) {
                     i++;
-                    admin();
                 }
             }
             for (Banker b : bankerlist) {
@@ -214,9 +135,23 @@ public class App extends Application {
             for (Account a : accountlist) {
                 if (num == a.getNumber()) {
                     if (pass.equals(a.getPassword())) {
-                        account = a;
-                        i++;
-                        customer();
+
+                        if (a.getActive() == false) {
+                            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                            alert.initStyle(StageStyle.UTILITY);
+                            alert.setTitle("Account Not Active");
+                            alert.setHeaderText(null);
+                            alert.setContentText("Account isn't active, Please contact at bank to activate.");
+                            alert.showAndWait();
+                            passowrd.setText("");
+                            username.setText("");
+                            i++;
+                        } else {
+                            account = a;
+                            i++;
+                            customer();
+                        }
+
                     }
                 }
             }
@@ -246,8 +181,7 @@ public class App extends Application {
         Button bt5 = new Button("Log Out");
         Button bt6 = new Button("Manage Contact");
         Button bt7 = new Button("Notifications(" + account.getNotification().size() + ")");
-        Label name = new Label("Name: " + account.getOwner().getName().first_name + " "
-                + account.getOwner().getName().middle_name + " " + account.getOwner().getName().last_name + " ");
+        Label name = new Label("Name: " + account.getFullname());
         Label num = new Label("Account Number: " + account.getNumber());
         Label amount = new Label("Amount: " + account.getAmount());
         VBox v = new VBox();
@@ -375,6 +309,39 @@ public class App extends Application {
         request.add(rAm, 1, 1);
         request.add(send, 3, 2);
         bt2.setOnAction(e -> mainStage.setScene(new Scene(new VBox(pane, l, request), 1100, 700)));
+        send.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent event) {
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.initStyle(StageStyle.UTILITY);
+                alert.setTitle("Confirm Request Completion");
+                alert.setHeaderText("Confirm Request Completion");
+                alert.setContentText("Are you sure you want to send the Request.");
+                Optional<ButtonType> option = alert.showAndWait();
+                if (option.get() == ButtonType.OK) {
+                    Double amountF = exception.correctInputDouble(rAm);
+                    if (amountF == 0) {
+                        return;
+                    }
+                    Request request = new Request();
+                    request.setRequester(account.getNumber());
+                    request.setAmount(amountF);
+                    request.setType(type.getValue());
+                    Banker.addRequests(request);
+                    Alert alert1 = new Alert(Alert.AlertType.INFORMATION);
+                    alert1.initStyle(StageStyle.UTILITY);
+                    alert1.setTitle("Information");
+                    alert1.setHeaderText(null);
+                    if (type.getValue().equals("Loan"))
+                        alert1.setContentText("Request Sent, Please wait for reply.");
+                    else
+                        alert1.setContentText("Request Sent, Please come to bank to complete the Transaction.");
+                    alert1.showAndWait();
+                    type.setValue(null);
+                    rAm.setText("");
+                    customer();
+                }
+            }
+        });
         // Get Request
 
         // Ask Question
@@ -395,15 +362,19 @@ public class App extends Application {
 
         // Notification
         ArrayList<Label> nt = new ArrayList<>();
-        VBox notf = new VBox();
+        GridPane notf = new GridPane();
+        notf.setPadding(new Insets(50, 50, 50, 50));
+        notf.setVgap(20);
+        int i = 1;
         for (String not : account.getNotification()) {
-            nt.add(new Label(not));
+            nt.add(new Label(i + ") " + not));
+            i++;
         }
-        for (int i = 0; i < nt.size(); i++) {
-            notf.getChildren().add(nt.get(i));
+        for (i = 0; i < nt.size(); i++) {
+            notf.add(nt.get(i), 0, i + 1);
         }
         Button seen = new Button("Seen");
-        notf.getChildren().add(seen);
+        notf.add(seen, 1, nt.size() + 1);
         bt7.setOnAction(e -> mainStage.setScene(new Scene(new VBox(pane, l, notf), 1100, 700)));
         seen.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent event) {
@@ -487,6 +458,7 @@ public class App extends Application {
         public void handle(ActionEvent event) {
             String ques = question.getText();
             AnswerQuestion a = account.askQuetion(ques);
+            Banker.addQuestion(a);
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.initStyle(StageStyle.UTILITY);
             alert.setTitle("Information");
@@ -515,9 +487,8 @@ public class App extends Application {
         pane.setPadding(new Insets(0, 20, 5, 20));
         Button bt1 = new Button("Create New Account");
         Button bt2 = new Button("View Normal Request");
-        Button bt3 = new Button("View Loan Request");
         Button bt4 = new Button("Search Transaction");
-        Button bt5 = new Button("Search Accounts");
+        Button bt5 = new Button("Browse Accounts");
         Button bt6 = new Button("Answer Question");
         Button bt7 = new Button("Change Password");
         Button bt8 = new Button("Log Out");
@@ -529,13 +500,12 @@ public class App extends Application {
         v.getChildren().addAll(name, num);
         pane.add(bt1, 0, 0);
         pane.add(bt2, 1, 0);
-        pane.add(bt3, 2, 0);
-        pane.add(bt4, 3, 0);
-        pane.add(bt5, 4, 0);
-        pane.add(bt6, 5, 0);
-        pane.add(bt7, 6, 0);
-        pane.add(bt8, 7, 0);
-        pane.add(v, 8, 0);
+        pane.add(bt4, 2, 0);
+        pane.add(bt5, 3, 0);
+        pane.add(bt6, 4, 0);
+        pane.add(bt7, 5, 0);
+        pane.add(bt8, 6, 0);
+        pane.add(v, 11, 0);
         Line l = new Line();
         l.setStartX(0);
         l.setStartY(60);
@@ -584,67 +554,308 @@ public class App extends Application {
         create.setMinWidth(100);
         create.setMinHeight(30);
         register.add(create, 3, 10);
-        create.setOnAction(new EventHandler<ActionEvent>() {
+        datePicker.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                if (registerFname.getText() == "" || registerMname.getText() == "" || registerLname.getText() == "" ||
-                        datePicker.getValue() == null || gender.getValue() == null || registerMail.getText() == ""
-                        || registerTel.getText() == "" || registerFname.getText() == ""
-                        || registerType.getValue() == null) {
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.initStyle(StageStyle.UTILITY);
-                    alert.setTitle("Empty Field");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Fill all Blanks.");
-                    alert.showAndWait();
-                    return;
-                }
-                double registerAmount = exception.correctInputDouble(intialAmount);
-                if (registerAmount == 0) {
-                    return;
-                }
-                Account newAccount = new Account();
-                LocalDate dob = datePicker.getValue();
-                newAccount.setAccount(registerFname.getText(),
-                        registerMname.getText(), registerLname.getText(),
-                        dob.getDayOfMonth(), dob.getMonthValue(), dob.getYear(), gender.getValue(),
-                        registerMail.getText(), registerTel.getText(), registerType.getValue(), registerAmount);
-                accountlist.add(newAccount);
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.initStyle(StageStyle.UTILITY);
-                alert.setTitle("Success");
-                alert.setHeaderText(null);
-                alert.setContentText("Account Has been Created the Account number is " + newAccount.getNumber()
-                        + " and password by default is 1234.");
-                alert.showAndWait();
-                employee();
+                create.setOnAction(new EventHandler<ActionEvent>() {
+                    @Override
+                    public void handle(ActionEvent event) {
+                        if (registerFname.getText() == "" || registerMname.getText() == ""
+                                || registerLname.getText() == "" ||
+                                datePicker.getValue() == null || gender.getValue() == null
+                                || registerMail.getText() == ""
+                                || registerTel.getText() == "" || registerFname.getText() == ""
+                                || registerType.getValue() == null) {
+                            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                            alert.initStyle(StageStyle.UTILITY);
+                            alert.setTitle("Empty Field");
+                            alert.setHeaderText(null);
+                            alert.setContentText("Fill all Blanks.");
+                            alert.showAndWait();
+                            return;
+                        }
+                        double registerAmount = exception.correctInputDouble(intialAmount);
+                        if (registerAmount == 0) {
+                            return;
+                        }
+                        Account newAccount = new Account();
+                        LocalDate dob = datePicker.getValue();
+                        newAccount.setAccount(registerFname.getText(),
+                                registerMname.getText(), registerLname.getText(),
+                                dob.getDayOfMonth(), dob.getMonthValue(), dob.getYear(), gender.getValue(),
+                                registerMail.getText(), registerTel.getText(), registerType.getValue(), registerAmount);
+                        accountlist.add(newAccount);
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.initStyle(StageStyle.UTILITY);
+                        alert.setTitle("Success");
+                        alert.setHeaderText(null);
+                        alert.setContentText("Account Has been Created the Account number is " + newAccount.getNumber()
+                                + " and password by default is 1234.");
+                        alert.showAndWait();
+                        employee();
+                    }
+                });
             }
         });
+
         bt1.setOnAction(e -> mainStage.setScene(new Scene(new VBox(pane, l, register), 1300, 700)));
         // Create Account
 
-       
-        //View Normal Request
+        // Answer Question
+        TableView<AnswerQuestion> Question = new TableView<>();
+        TableColumn<AnswerQuestion, String> qColumn = new TableColumn<>("Questions");
+        qColumn.setCellValueFactory(new PropertyValueFactory<AnswerQuestion, String>("question"));
+        Question.getColumns().add(qColumn);
+        Question.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        Question.setPlaceholder(new Label("No Questions Available"));
+        Question.getItems().addAll(banker.getAnswerQuestions());
+        Question.setMaxWidth(500);
+        TextField ans = new TextField();
+        ans.setMinWidth(350);
+        ans.setMinHeight(40);
+        Button answer = new Button("Answer");
+        Button notAnswer = new Button("Discard");
+        GridPane QandA = new GridPane();
+        QandA.setPadding(new Insets(20, 20, 20, 20));
+        QandA.setHgap(30);
+        QandA.setVgap(10);
+        QandA.add(Question, 0, 0);
+        QandA.add(new Label("Enter answer here->"), 1, 0);
+        QandA.add(ans, 2, 0);
+        QandA.add(answer, 3, 0);
+        QandA.add(notAnswer, 0, 1);
+        answer.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent event) {
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.initStyle(StageStyle.UTILITY);
+                alert.setTitle("Confirm ");
+                alert.setHeaderText(null);
+                alert.setContentText("Are you sure you want to answer this question.");
+                Optional<ButtonType> option = alert.showAndWait();
+                if (option.get() == ButtonType.OK) {
+                    ObservableList<AnswerQuestion> select, selected;
+                    select = Question.getItems();
+                    selected = Question.getSelectionModel().getSelectedItems();
+                    for (Account ac : accountlist) {
+                        if (ac.getNumber() == selected.get(0).getAccountno()) {
+                            selected.get(0).setAnswer(ans.getText());
+                            ac.recieveAnswer(selected.get(0));
+                        }
+                    }
+                    banker.removeQuestion(selected.get(0));
+                    selected.forEach(select::remove);
+                    ans.setText("");
+                }
+            }
+        });
+        notAnswer.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent event) {
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.initStyle(StageStyle.UTILITY);
+                alert.setTitle("Confirm ");
+                alert.setHeaderText(null);
+                alert.setContentText("Are you sure you want to discard this question.");
+                Optional<ButtonType> option = alert.showAndWait();
+                if (option.get() == ButtonType.OK) {
+                    ObservableList<AnswerQuestion> select, selected;
+                    select = Question.getItems();
+                    selected = Question.getSelectionModel().getSelectedItems();
+                    banker.removeQuestion(selected.get(0));
+                    selected.forEach(select::remove);
+                    ans.setText("");
+                }
+            }
+        });
+        bt6.setOnAction(e -> mainStage.setScene(new Scene(new VBox(pane, l, QandA), 1300, 700)));
+        // Answer Question
+
+        // View Normal Request
         TableView<Request> nRequest = new TableView<>();
         TableColumn<Request, String> tColumn = new TableColumn<>("Type");
         tColumn.setCellValueFactory(new PropertyValueFactory<Request, String>("type"));
         TableColumn<Request, Long> ANColumn = new TableColumn<>("Account Number");
-        ANColumn.setCellValueFactory(new PropertyValueFactory<Request, Long>("requester.getNumber()"));
+        ANColumn.setCellValueFactory(new PropertyValueFactory<Request, Long>("requester"));
         TableColumn<Request, Double> AmColumn = new TableColumn<>("Ammount");
         AmColumn.setCellValueFactory(new PropertyValueFactory<Request, Double>("amount"));
-        nRequest.getColumns().addAll(tColumn,ANColumn, AmColumn);
+        nRequest.getColumns().addAll(tColumn, ANColumn, AmColumn);
         nRequest.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         nRequest.setPlaceholder(new Label("No Request Available"));
         nRequest.getItems().addAll(banker.getRequests());
         nRequest.setMaxWidth(500);
         ANColumn.setSortType(TableColumn.SortType.ASCENDING);
-        bt2.setOnAction(e -> mainStage.setScene(new Scene(new VBox(pane, l, nRequest), 1300, 700)));
-        Button approve=new Button("Approve");
+        Button approve = new Button("Approve");
         Button discard = new Button("Discard");
-        
+        GridPane buttons = new GridPane();
+        buttons.setHgap(40);
+        buttons.add(approve, 0, 0);
+        buttons.add(discard, 0, 1);
+        discard.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent event) {
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.initStyle(StageStyle.UTILITY);
+                alert.setTitle("Confirm Discard");
+                alert.setHeaderText("Confirm Discard");
+                alert.setContentText("Are you sure you want to disgard this request.");
+                Optional<ButtonType> option = alert.showAndWait();
+                if (option.get() == ButtonType.OK) {
+                    ObservableList<Request> select, selected;
+                    select = nRequest.getItems();
+                    selected = nRequest.getSelectionModel().getSelectedItems();
+                    for (Account ac : accountlist) {
+                        if (ac.getNumber() == selected.get(0).getRequester()) {
+                            ac.addNotification("Your Loan Request Has Been Denied.");
+                        }
+                    }
+                    banker.discardRequest(selected.get(0));
+                    selected.forEach(select::remove);
+                }
+            }
+        });
+        approve.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent event) {
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.initStyle(StageStyle.UTILITY);
+                alert.setTitle("Confirm Approve");
+                alert.setHeaderText("Confirm Approve");
+                alert.setContentText("Are you sure you want to approve this request.");
+                Optional<ButtonType> option = alert.showAndWait();
+                if (option.get() == ButtonType.OK) {
+                    ObservableList<Request> select, selected;
+                    select = nRequest.getItems();
+                    selected = nRequest.getSelectionModel().getSelectedItems();
+                    if (selected.get(0).getType().equals("Withdrawal")) {
+                        for (Account ac : accountlist) {
+                            if (ac.getNumber() == selected.get(0).getRequester()) {
+                                ac = banker.withdraw(selected.get(0).getAmount(), ac);
+                            }
 
+                        }
+                    }
+                    if (selected.get(0).getType().equals("Deposit")) {
+                        for (Account ac : accountlist) {
+                            if (ac.getNumber() == selected.get(0).getRequester()) {
+                                ac = banker.deposit(selected.get(0).getAmount(), ac);
+                            }
+
+                        }
+                    }
+                    if (selected.get(0).getType().equals("Loan")) {
+                        Request r = selected.get(0);
+                        Button setDate = new Button("Set Appointment");
+                        DatePicker appointment = new DatePicker();
+                        TextField timeSet = new TextField();
+                        GridPane appoint = new GridPane();
+                        appoint.setHgap(20);
+                        appoint.setVgap(20);
+                        appoint.setPadding(new Insets(50, 50, 50, 50));
+                        appoint.add(new Label("Enter the date for Appointment"), 0, 0);
+                        appoint.add(appointment, 1, 0);
+
+                        appoint.add(new Label("Enter the time for Appointment"), 0, 1);
+                        appoint.add(timeSet, 1, 1);
+                        appoint.add(setDate, 1, 2);
+                        mainStage.setScene(new Scene(new VBox(pane, l, appoint), 1300, 700));
+                        appointment.setOnAction(new EventHandler<ActionEvent>() {
+                            public void handle(ActionEvent event) {
+                                LocalDate doa = appointment.getValue();
+                                setDate.setOnAction(new EventHandler<ActionEvent>() {
+                                    public void handle(ActionEvent event) {
+                                        for (Account ac : accountlist) {
+                                            if (ac.getNumber() == r.getRequester()) {
+                                                ac.addNotification(
+                                                        "Your loan had been acepted, You hava an Appointment for " + doa
+                                                                + " at "
+                                                                + timeSet.getText());
+                                            }
+                                        }
+                                        appointment.setValue(null);
+                                        timeSet.setText("");
+                                        employee();
+                                    }
+                                });
+                            }
+                        });
+
+                    }
+
+                    banker.discardRequest(selected.get(0));
+                    selected.forEach(select::remove);
+                }
+            }
+        });
+        bt2.setOnAction(e -> mainStage.setScene(new Scene(new VBox(pane, l, nRequest, buttons), 1300, 700)));
         // View Normal Request
 
+        // Account List
+        TextField search = new TextField();
+        search.setMinWidth(100);
+        Button searchbt = new Button("Search");
+        HBox searchBar = new HBox();
+        searchBar.setPadding(new Insets(20, 20, 20, 20));
+        searchBar.getChildren().addAll(new Label(" Enter the Account Number here:    "), search, searchbt);
+        TableView<Account> Atable = new TableView<>();
+        TableColumn<Account, String> fColumn = new TableColumn<>("Name");
+        fColumn.setCellValueFactory(new PropertyValueFactory<Account, String>("fullname"));
+        TableColumn<Account, Long> numColumn = new TableColumn<>("Account Number");
+        numColumn.setCellValueFactory(new PropertyValueFactory<Account, Long>("number"));
+        Atable.getColumns().addAll(fColumn, numColumn);
+        Atable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        Atable.setPlaceholder(new Label("Account List Empty"));
+        Atable.getItems().addAll(accountlist);
+        Atable.setMaxWidth(800);
+        numColumn.setSortType(TableColumn.SortType.ASCENDING);
+        searchbt.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent event) {
+                Long searchv = exception.correctInputLong(search);
+                Account result = banker.searchList(searchv, accountlist);
+                if (result == null) {
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.initStyle(StageStyle.UTILITY);
+                    alert.setTitle("Not Found");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Account Number Not Found ");
+                    alert.showAndWait();
+                    customer();
+                } else {
+                    GridPane infoGridPane = new GridPane();
+                    Button cont = new Button();
+                    infoGridPane.setPadding(new Insets(50, 100, 100, 100));
+                    infoGridPane.setVgap(15);
+                    infoGridPane.add(new Label("Name: " + result.getFullname()), 0, 1);
+                    infoGridPane.add(new Label("Account Number: " + result.getNumber()), 0, 2);
+                    infoGridPane.add(new Label("Type : " + result.getType()), 0, 3);
+                    infoGridPane.add(new Label("Phone Number: " + result.getOwner().getTel()), 0, 4);
+                    infoGridPane.add(new Label("Email: " + result.getOwner().getEmail()), 0, 5);
+                    infoGridPane.add(new Label("Age: " + result.getOwner().getAge()), 0, 6);
+                    infoGridPane.add(new Label("Current Condition: "), 0, 7);
+                    if (result.getActive() == false) {
+                        infoGridPane.add(new Label("Diactive"), 1, 7);
+                        cont.setText("Activate");
+                    } else {
+                        infoGridPane.add(new Label("Active"), 1, 7);
+                        cont.setText("Diactivate");
+                    }
+                    infoGridPane.add(cont, 2, 8);
+                    cont.setOnAction(new EventHandler<ActionEvent>() {
+                        public void handle(ActionEvent event) {
+                            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                            alert.initStyle(StageStyle.UTILITY);
+                            alert.setTitle("Confirm");
+                            alert.setHeaderText(null);
+                            alert.setContentText("Confirm Operation.");
+                            Optional<ButtonType> option = alert.showAndWait();
+                            if (option.get() == ButtonType.OK) {
+                                result.changeCondtion(result.getActive());
+                            }
+                            employee();
+                        }
+                    });
+                    mainStage.setScene(new Scene(new VBox(pane, l, searchBar, infoGridPane), 1300, 700));
+                }
+            }
+        });
+        bt5.setOnAction(e -> mainStage.setScene(new Scene(new VBox(pane, l, searchBar, Atable), 1300, 700)));
+        // Account List
 
         // Change Password
         GridPane changePW = new GridPane();
@@ -691,32 +902,6 @@ public class App extends Application {
     }
 
     public static void main(String[] args) {
-        // Person c = new Person();
-        // Name n = new Name();
-        /*
-         * n.first_name = "a";
-         * n.middle_name = "a";
-         * n.last_name = "a";
-         */
-        /*
-         * c.setName(n);
-         * Account t = new Account("xxx", c);
-         * t.setAmount(2000.56);
-         *
-         * Banker b = new Banker();
-         * // b.setFull_name(n);
-         * ;
-         */
-        // bankerlist.add(banker);
-        /*
-         * accountlist.add(t);
-         * Name m = new Name();
-         * Person d = new Person();
-         * m.first_name = "b";
-         * m.middle_name = "b";
-         * m.last_name = "b";
-         * d.setName(m);
-         */
         Account w = new Account(1);
         Account x = new Account(1);
         accountlist.add(w);
@@ -725,11 +910,6 @@ public class App extends Application {
         Banker b = new Banker(1);
         bankerlist.add(a);
         bankerlist.add(b);
-        /*
-         * w.setAmount(30000.56);
-         * accountlist.add(w);
-         */
-        // check();
         launch(args);
     }
 }

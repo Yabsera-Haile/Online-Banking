@@ -13,7 +13,9 @@ public class Banker extends Person {
     private static long total = -1;
     private String password = "1234";
     protected static ArrayList<Transaction> transactions = new ArrayList<>();
-    private static ArrayList<Request> requests=new ArrayList<>();
+    private static ArrayList<Request> requests = new ArrayList<>();
+    private static ArrayList<AnswerQuestion> answerQuestions = new ArrayList<>();
+
     public Banker() {
         id = total - 1;
         total--;
@@ -22,9 +24,9 @@ public class Banker extends Person {
     public Banker(int a) {
         id = total - 1;
         total--;
-        this.getName().first_name = "aaa";
-        this.getName().middle_name = "bbb";
-        this.getName().last_name = "ccc";
+        this.getName().first_name = "xxx";
+        this.getName().middle_name = "yyy";
+        this.getName().last_name = "zzz";
     }
 
     public String changePassword(String op, String np, String cp) {
@@ -78,62 +80,60 @@ public class Banker extends Person {
         return password;
     }
 
-    public void debit(double amount, Account newacc) {
+    public Account withdraw(double amount, Account ac) {
 
-        newacc.setAmount(newacc.getAmount() - amount);
-        System.out.println("Transaction succesful, press Enter to continue. ");
-        sc.nextLine();
+        if (amount > ac.getAmount()) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.initStyle(StageStyle.UTILITY);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText("Insufficient Balance ");
+            alert.showAndWait();
+            return ac;
+        }
+        ac.setAmount(ac.getAmount() - amount);
+        return ac;
     }
 
-    public void deposit(double amount, Account newacc) {
-        newacc.setAmount(newacc.getAmount() + amount);
-        System.out.println("Transaction succesful, press Enter to continue. ");
-        sc.nextLine();
+    public Account deposit(double amount, Account ac) {
+        ac.setAmount(ac.getAmount() + amount);
+        return ac;
     }
 
     public static void registerTransaction(Transaction t) {
         transactions.add(t);
     }
 
-    public void searchTransaction1() {
-        System.out.print("\033[H\033[2J");
-        System.out.print("Enter the Account Number of the Customer involved: ");
-        long a = sc.nextLong();
-        int i = 0;
-        for (Transaction t : transactions) {
-            if (t.receiver == a || t.sender == a) {
-                t.display();
-                i++;
-            }
-        }
-        if (i == 0) {
-            System.out.println("Not Found.");
-        }
-    }
-
-    public void searchTransaction2() {
-        System.out.print("\033[H\033[2J");
-        DateList d = new DateList();
-        int i = 0;
-        for (Transaction t : transactions) {
-            if (t.DoT == d) {
-                t.display();
-                i++;
-            }
-        }
-        if (i == 0) {
-            System.out.println("Not Found.");
-        }
-    }
-    public static ArrayList<Transaction> getTransactions() {
-        return transactions;
-    }
-    public static ArrayList<Request> getRequests() {
+    public ArrayList<Request> getRequests() {
         return requests;
     }
-    public void printTransaction() {
-        for (Transaction t : transactions) {
-            t.display();
+
+    public static void discardRequest(Request request) {
+        requests.remove(request);
+    }
+
+    public static void addRequests(Request request) {
+        requests.add(request);
+    }
+
+    public Account searchList(long num, ArrayList<Account> accountList) {
+        for (Account account : accountList) {
+            if (num == account.getNumber()) {
+                return account;
+            }
         }
+        return null;
+    }
+
+    public static void addQuestion(AnswerQuestion answerQuestion) {
+        answerQuestions.add(answerQuestion);
+    }
+
+    public static ArrayList<AnswerQuestion> getAnswerQuestions() {
+        return answerQuestions;
+    }
+
+    public void removeQuestion(AnswerQuestion answerQuestion) {
+        answerQuestions.remove(answerQuestion);
     }
 }
