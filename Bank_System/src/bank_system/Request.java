@@ -1,9 +1,9 @@
 package bank_system;
 
 public class Request {
+    protected String type;
     protected double amount;
-    protected Account requester;
-    protected Banker Reveiwer;
-    protected DateList DoR;
-    protected Asset r_asset;
+    protected Account requester=new Account();
+    protected Banker Reveiwer=new Banker();
+    protected DateList DoR=new DateList();
 }

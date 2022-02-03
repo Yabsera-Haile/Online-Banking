@@ -5,15 +5,14 @@ public class Person {
     private Name full_name=new Name();
     private DateList DoB=new DateList();
     private String sex,email,tel;
-    public void setPerson()
+    public void setPerson(String fname,String mname,String lname,int d, int m, int y,String sex,String email,String tel)
     {
-        Scanner sc=new Scanner(System.in);
-        System.out.print("Enter the Sex: ");
-        this.sex = sc.nextLine();
-        System.out.print("Enter the Email: ");
-        this.email=sc.nextLine();
-        System.out.print("Enter the Tel: ");
-        this.tel = sc.nextLine();  
+        this.email=email;
+        this.tel=tel;
+        this.sex=sex;
+        this.full_name.setName(fname,mname,lname);
+        this.DoB.setDateList(d,m,y);
+
     }
     public void setFull_name(Name full_name) {
         this.full_name = full_name;

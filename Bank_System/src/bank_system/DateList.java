@@ -5,15 +5,11 @@ import java.util.Scanner;
 
 public class DateList {
     protected int day, month, year;
-    public void setDateList()
+    public void setDateList(int d, int m, int y)
     {
-        Scanner sc=new Scanner(System.in);
-        System.out.print("Enter the Day: ");
-        this.day = sc.nextInt();
-        System.out.print("Enter the Month: ");
-        this.month = sc.nextInt();
-        System.out.print("Enter the Year: ");
-        this.year = sc.nextInt();
+        this.day=d;
+        this.month=m;
+        this.year=y;
     }  
     
     public int  getAge() {

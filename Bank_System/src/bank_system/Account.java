@@ -7,6 +7,7 @@ import javafx.scene.control.Alert;
 import javafx.stage.StageStyle;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.TableView;
 
 import javax.swing.text.View;
 import java.lang.*;
@@ -42,17 +43,10 @@ public class Account {
         this.amount = 2000;
     }
 
-    public void setAccount() {
-
-        Scanner sc = new Scanner(System.in);
-        System.out.print("\033[H\033[2J");
-        System.out.print("Insert the type of Account: ");
-        this.type = sc.nextLine();
-        System.out.print("Insert the Starting Amount: ");
-        this.setAmount(sc.nextDouble());
-        sc.nextLine();
-        System.out.println("Account has been created: Press Enter to return.");
-        sc.nextLine();
+    public void setAccount(String fname,String mname,String lname,int d,int m,int y,String sex,String email,String tel,String type,double amount) {
+        this.amount=amount;
+        this.type=type;
+        owner.setPerson(fname,mname,lname,d,m,y,sex,email,tel);
     }
 
     public void setNumber(long number) {
@@ -139,28 +133,6 @@ public class Account {
                         } else if (option.get() == ButtonType.CANCEL) {
                             return "Transfer Cancelled";
                         }
-                        /*
-                         * System.out.println("Are you sure you want to transder " + amount + " to "
-                         * + temp.owner.getName().first_name + " "
-                         * + temp.owner.getName().middle_name + " " + temp.owner.getName().last_name
-                         * + ".\n Enter Y to confirm or any other letter to deny.");
-                         * char ch = sc.next().charAt(0);
-                         * ch = Character.toLowerCase(ch);
-                         * if (ch == 'y') {
-                         * this.amount -= amount;
-                         * temp.recieve(this.number, amount);
-                         * System.out.print("\033[H\033[2J");
-                         * System.out.println("You have transfered " + amount +
-                         * " ETB to Account Number " + temp.number
-                         * + ". \nYour current balance is " + this.amount
-                         * + ".\n Press Enter to return to previous page.");
-                         * i++;
-                         * sc.nextLine();
-                         * } else
-                         * i++;
-                         * }
-                         * }
-                         */
 
                     }
                 }
@@ -180,90 +152,51 @@ public class Account {
         return type;
     }
 
-    public AnswerQuestion askQuetion() {
-        Scanner sc = new Scanner(System.in);
+    public AnswerQuestion askQuetion(String q) {
         AnswerQuestion a = new AnswerQuestion();
-        System.out.print("\033[H\033[2J");
-        System.out.print("Enter Your Question: ");
-        a.question = sc.nextLine();
+        a.question = q;
         a.accountno = this.number;
-        System.out.println("Your question has been recieved, It will answered shortly.\nPlease press Enter to Return.");
-        sc.nextLine();
         return a;
     }
 
-    public int addFriends(String name, long accountno, ArrayList<Account> accountList) {
-        Scanner sc = new Scanner(System.in);
-        int i = 0;
+    public void addFriends(String name, long accountno, ArrayList<Account> accountList) {
+        String i = null;
         if (accountno == this.number) {
-            System.out.println("You can't be your Own Benificiary.\n Please Press Enter to Return.");
-            sc.nextLine();
-            return 0;
+            i = "You can't be your Own Benificiary.";
         }
+        if(i==null)
         for (Beneficairy ben : friends) {
             if (accountno == ben.getAccountno()) {
-                System.out.println("Beneficiary Already Exists.\nPress Enter to Return.");
-                sc.nextLine();
-                return 0;
+                i = "Beneficiary Already Exists.";
             }
         }
+        if(i==null)
         for (Account temp : accountList) {
             if (accountno == temp.number) {
                 Beneficairy beneficairy = new Beneficairy(name, accountno);
                 friends.add(beneficairy);
-                System.out.println("New Beneficairy added.\nPress Enter to Return.");
-                sc.nextLine();
-                i++;
-                return 0;
+                i = "New Beneficairy added.";
             }
         }
-        if (i == 0) {
-            System.out.println("Account number not found.\n Please Press Enter to Return.");
-            sc.nextLine();
+        if (i == null) {
+            i = "Account number not found.";
         }
-        return 0;
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.initStyle(StageStyle.UTILITY);
+        alert.setTitle("Information");
+        alert.setHeaderText(null);
+        alert.setContentText(i);
+        alert.showAndWait();
     }
 
-    public void viewFriends(int a) {
-        Scanner sc = new Scanner(System.in);
-        int i = 0;
-        System.out.println("N)  Name\tAccount Number");
-        System.out.println("====================================================");
-        for (Beneficairy temp : friends) {
-            i++;
-            System.out.println(i + ") " + temp.getName() + "  " + temp.getAccountno());
-        }
-        if (i == 0)
-            System.out.println("No Regisered Beneficiaries.");
-        if (a == 0) {
-            System.out.println("Press Enter to return.");
-            sc.nextLine();
-        }
+    public ArrayList<Beneficairy> returnFriends() {
+        return friends;
     }
 
-    public void deleteFriends() {
-        Scanner sc = new Scanner(System.in);
-        System.out.print("Enter the account number of the beneficiary you wish to delete: ");
-        long check = sc.nextLong();
-        int i = 0, j = 0;
-        Beneficairy t;
-        for (Beneficairy temp : friends) {
-            if (temp.getAccountno() == check) {
-                j++;
-                break;
-            } else {
-                i++;
-            }
-        }
-        if (j == 0) {
-            System.out.println("Beneficiary hasn't been found.\nPress Enter to return.");
-            sc.nextLine();
-        } else {
-            friends.remove(i);
-            System.out.println("Beneficiary has been deleted.\nPress Enter to return.");
-            sc.nextLine();
-        }
+    public void deleteFriends(Beneficairy beneficairy) {
+        friends.remove(beneficairy);
     }
+
 
     public Request loanRequest() {
         System.out.print("\033[H\033[2J");
@@ -280,8 +213,8 @@ public class Account {
         String location = sc.nextLine();
         System.out.print("Enter an official estimated worth of the asset: ");
         double amount = sc.nextDouble();
-        Asset asset = new Asset(type, location, amount);
-        request.r_asset = asset;
+        // Asset asset = new Asset(type, location, amount);
+        // request.r_asset = asset;
         System.out.println("Your request has been sent, a reply will be sent shortly.\n Press Enter to return.");
         sc.nextLine();
         return request;
